@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    # Step 4: Run Django tests
+    - name: Run tests
+      run: |
+        python manage.py test
+
+    # Step 5: Set up Docker
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
+
+    # Step 6: Login to Docker Hub
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # Step 7: Build and push Docker image
+    - name: Build and push Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/django-blog:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/django-blog:latest
+
+
+
+
+
+# --------- this is the personalized description of what is happening here ------------------
+#Checkout → pulls your repo code.
+
+#Python setup → installs Python 3.11.
+
+#Dependencies → installs packages from requirements.txt.
+
+#Tests → runs python manage.py test (my tests.py will be executed here).
+
+#Docker build → builds  image.
+
+#Docker push → pushes image to Docker Hub.
